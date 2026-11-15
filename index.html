@@ -617,6 +617,15 @@ ol.tac li .playbtn{font-size:.85em}
 #book.single .pg,#book.single .pg::before,#book.single .pg::after{border-radius:0 5px 5px 0}
 .pg .endp,.pg>.endp{border-radius:inherit}
 .base-r,.base-s{border-radius:0 5px 5px 0}.base-l{border-radius:5px 0 0 5px}#book.single .backcover{border-radius:0 5px 5px 0}
+/* songs play hidden in the background: the play button itself shows that it is playing (tap again to stop) */
+#ytbg{position:fixed;left:0;bottom:0;width:200px;height:200px;opacity:0;pointer-events:none;z-index:-1;overflow:hidden}
+#ytbg iframe{width:200px;height:200px;border:0}
+.playbtn .i-stop{display:none}
+.playbtn.on .i-play{display:none}.playbtn.on .i-stop{display:block}
+.playbtn.on{background:var(--crimson);color:#fff4dc;border-color:var(--crimson);box-shadow:0 0 0 0 rgba(140,28,44,.5);animation:ytpulse 1.6s ease-out infinite}
+.playbtn.wait{animation:ytpulse 1s ease-out infinite}
+@keyframes ytpulse{0%{box-shadow:0 0 0 0 rgba(140,28,44,.45)}100%{box-shadow:0 0 0 .7em rgba(140,28,44,0)}}
+.ytdock.ghost{opacity:0;pointer-events:none;transform:translate(-50%,0) scale(.2)!important;left:0!important;bottom:0!important}
 </style>
 
 </head>
@@ -1345,7 +1354,7 @@ const ytNorm=t=>String(t||'').toLowerCase().replace(/[’']/g,"'").replace(/[^a-
 const YT_KEYS=Object.keys(YT_IDS).map(k=>[ytNorm(k),k]).sort((a,b)=>b[0].length-a[0].length);
 /* a batchmate's own playlist line → the matching chart song, if any */
 function ytFor(raw){const n=' '+ytNorm(raw)+' ';for(const [nk,k] of YT_KEYS){if(n.includes(' '+nk+' ')){const alt=YT_ALT[k];if(alt)for(const a in alt)if(n.includes(a))return{id:alt[a],title:k};return{id:YT_IDS[k],title:k};}}return null;}
-const playBtn=(id,label)=>`<button class="playbtn" type="button" data-yt="${id}" data-label="${esc(label)}" aria-label="Play ${esc(label)}"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></button>`;
+const playBtn=(id,label)=>`<button class="playbtn" type="button" data-yt="${id}" data-label="${esc(label)}" aria-label="Play ${esc(label)}"><svg class="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg><svg class="i-stop" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg></button>`;
 function sunSVG(cls,cx,cy,R){
   /* sixty rays for sixty batchmates: 6 major rays (one per 60°) and 54 minor rays between them */
   const pt=(r,a)=>`${(cx+r*Math.cos(a)).toFixed(1)} ${(cy+r*Math.sin(a)).toFixed(1)}`;
@@ -1995,36 +2004,60 @@ function layout(){
 }
 window.__dbg={go:goTo,cur:()=>cur,busy:()=>busy,N:()=>N,pending:()=>pending,step:async per=>{if(busy)return;busy=true;await turn(cur+1,per);finishTurn(true,1);},rotate:rotateToFront,pages:()=>PAGES.length};
 let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(!busy){layout();if(WALL.on&&$('bg').classList.contains('on'))backdrop();}},220);});
-/* ===================== the song dock: plays the chart's songs inside the book, from their official YouTube uploads =====================
-   A plain YouTube embed (no API script needed), so it works from a CD, a USB stick or any website. The claude.ai preview
-   does not allow other sites inside the page at all, so there the dock offers the link instead. */
+/* ===================== songs: they play hidden, in the background, the moment a play button is tapped =====================
+   A plain YouTube embed (no API script needed), so it works from a CD, a USB stick or any website.
+   The player sits invisibly behind the page; the play button turns into a pulsing stop button while the song plays.
+   Only if the browser refuses to start it on its own (some phones insist on a tap inside the YouTube player)
+   does the small "Now playing" box appear, so the song can still be started with one tap. */
 const YT_BLOCKED=/(^|\.)claude\.(ai|site)$/.test(location.hostname);
-let ytCur=null,ytFrame=null;
-function ytStop(){if(ytFrame){try{ytFrame.contentWindow.postMessage(JSON.stringify({event:'command',func:'stopVideo',args:[]}),'*');}catch(_){}ytFrame.remove();ytFrame=null;}}
-function playSong(id,label){
-  const dock=$('ytdock');dock.hidden=false;dock.classList.remove('err','blocked');
-  $('ytt').textContent=label||'';const url='https://www.youtube.com/watch?v='+id;$('yto').href=url;$('yto2').href=url;
-  ytCur=id;
-  if(YT_BLOCKED||!navigator.onLine){dock.classList.add(YT_BLOCKED?'blocked':'err');ytStop();return;}
-  ytStop();
+let ytCur=null,ytFrame=null,ytLabel='',ytWatch=0,ytStarted=false;
+const ytBg=(()=>{const d=document.createElement('div');d.id='ytbg';d.setAttribute('aria-hidden','true');document.body.appendChild(d);return d;})();
+function ytMark(state){document.querySelectorAll('[data-yt]').forEach(b=>{const me=b.dataset.yt===ytCur;b.classList.toggle('on',me&&state==='on');b.classList.toggle('wait',me&&state==='wait');
+  b.setAttribute('aria-label',(me&&state?'Stop ':'Play ')+(b.dataset.label||''));});}
+function ytPost(f,func,args){try{f.contentWindow.postMessage(JSON.stringify({event:'command',func,args:args||[]}),'*');}catch(_){}}
+function ytStop(){clearTimeout(ytWatch);if(ytFrame){ytPost(ytFrame,'stopVideo');ytFrame.remove();ytFrame=null;}}
+function ytMake(id,label,host){
   const f=document.createElement('iframe');
   f.width=200;f.height=200;f.title=label||'YouTube player';f.allow='autoplay; encrypted-media; picture-in-picture';f.setAttribute('allowfullscreen','');f.referrerPolicy='strict-origin-when-cross-origin';
-  f.src='https://www.youtube-nocookie.com/embed/'+encodeURIComponent(id)+'?autoplay=1&playsinline=1&rel=0&modestbranding=1&enablejsapi=1';
-  $('ytp').replaceChildren(f);ytFrame=f;
-  SFX.duck(true);
+  const org=/^https?:/.test(location.protocol)?'&origin='+encodeURIComponent(location.origin):'';
+  f.src='https://www.youtube-nocookie.com/embed/'+encodeURIComponent(id)+'?autoplay=1&playsinline=1&rel=0&modestbranding=1&enablejsapi=1'+org;
+  /* ask the player to report its state, and nudge it to play once it is ready */
+  f.addEventListener('load',()=>{try{f.contentWindow.postMessage(JSON.stringify({event:'listening',id:1,channel:'widget'}),'*');}catch(_){}
+    setTimeout(()=>{if(!ytStarted)ytPost(f,'playVideo');},400);});
+  host.replaceChildren(f);return f;
 }
-function stopSong(){ytStop();const dock=$('ytdock');dock.hidden=true;dock.classList.remove('err','blocked');SFX.duck(false);ytCur=null;}
-/* the embed tells us when it ends or pauses, so the hymn and page sounds can come back */
+/* the browser would not start it by itself: show the little box so one tap on the video starts it */
+function ytFallback(kind){
+  if(!ytCur)return;
+  const dock=$('ytdock');dock.hidden=false;dock.classList.remove('err','blocked','ghost');if(kind)dock.classList.add(kind);
+  $('ytt').textContent=ytLabel;const url='https://www.youtube.com/watch?v='+ytCur;$('yto').href=url;$('yto2').href=url;
+  if(kind){ytStop();ytMark('');return;}
+  ytStop();ytFrame=ytMake(ytCur,ytLabel,$('ytp'));
+}
+function playSong(id,label){
+  if(ytCur===id){stopSong();return;}                         /* tapping the playing song again stops it */
+  stopSong();
+  ytCur=id;ytLabel=label||'';ytStarted=false;
+  if(YT_BLOCKED||!navigator.onLine){ytFallback(YT_BLOCKED?'blocked':'err');return;}
+  ytFrame=ytMake(id,label,ytBg);ytMark('wait');SFX.duck(true);
+  clearTimeout(ytWatch);ytWatch=setTimeout(()=>{if(!ytStarted)ytFallback();},4500);
+}
+function stopSong(){ytStop();const dock=$('ytdock');dock.hidden=true;dock.classList.remove('err','blocked','ghost');SFX.duck(false);ytCur=null;ytStarted=false;ytMark('');}
+/* the embed tells us when it plays, ends or pauses, so the button and the hymn follow along */
 addEventListener('message',e=>{
   if(!ytFrame||e.source!==ytFrame.contentWindow)return;
   let d=null;try{d=typeof e.data==='string'?JSON.parse(e.data):e.data;}catch(_){return;}
   if(!d)return;
-  if(d.event==='onReady'){try{ytFrame.contentWindow.postMessage(JSON.stringify({event:'listening',id:1,channel:'widget'}),'*');}catch(_){}}
+  if(d.event==='onReady'){try{ytFrame.contentWindow.postMessage(JSON.stringify({event:'listening',id:1,channel:'widget'}),'*');}catch(_){}if(!ytStarted)ytPost(ytFrame,'playVideo');}
   const st=d.info&&typeof d.info==='object'?d.info.playerState:(d.event==='onStateChange'?d.info:undefined);
-  if(st===1)SFX.duck(true);else if(st===0||st===2)SFX.duck(false);
-  if(d.event==='onError'){$('ytdock').classList.add('err');SFX.duck(false);}
+  if(st===1){ytStarted=true;clearTimeout(ytWatch);SFX.duck(true);ytMark('on');if(ytFrame.parentNode===$('ytp'))$('ytdock').classList.add('ghost');}  /* once it plays, the box can go away */
+  else if(st===0){stopSong();}
+  else if(st===2&&ytStarted){SFX.duck(false);}
+  if(d.event==='onError'){ytFallback('err');SFX.duck(false);}
 });
 $('ytx').addEventListener('click',()=>{SFX.play('tap');stopSong();});
+/* pages are redrawn as the book turns: keep the playing song's button lit */
+new MutationObserver(()=>{if(ytCur)ytMark(ytStarted?'on':'wait');}).observe(document.getElementById('book'),{childList:true,subtree:true});
 
 /* ===================== embers (red and blue) rising from the floor, and gold sparks when a page turns ===================== */
 const ecv=$('embers'),ecx=ecv.getContext('2d');let EW=0,EH=0;const EM=[];let embersOn=false;
