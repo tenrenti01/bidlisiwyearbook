@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bidlisiw · PSHS-CVC Batch 2007 Yearbook</title>
-<meta name="yb-build" content="20261116-1829-ae61dc8">
+<meta name="yb-build" content="20261116-1837-7ec4d37">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -586,6 +586,11 @@ ol.tac li .playbtn{font-size:.85em}
 /* closed, back side up: a solid block — the board's thickness shows at the lower right, exactly as the front cover's does, so the turn-around matches */
 .book.closedBack .leaf.bkboard .face.back{filter:drop-shadow(6px 6px 0 #3a0a12) drop-shadow(1px 1px 0 #d6c398) drop-shadow(14px 22px 24px rgba(0,0,0,.55))}
 .book.single.closedBack .peek{box-shadow:none!important;opacity:0;transition:none}
+.foot-l,.foot-r{display:none}
+.book.single .foot-l,.book.single .foot-r{display:block;position:absolute;top:100%;width:var(--d,7px);height:var(--d,7px);background:#4a0c16;pointer-events:none;z-index:1}
+.book.single .foot-l{right:100%;clip-path:polygon(100% 0,100% 3px,3px 100%,0 100%,0 calc(100% - 1px),calc(100% - 1px) 0)}
+.book.single .foot-r{left:0;clip-path:polygon(0 0,1px 0,100% calc(100% - 1px),100% 100%,calc(100% - 3px) 100%,0 3px)}
+.book.single.closedBack .foot-l,.book.single.closedBack .foot-r,.book.single.peekOff .foot-l,.book.single.peekOff .foot-r{display:none!important}
 .book.notrans .peek,.book.notrans .base{transition:none!important}   /* no fading leftovers when the book is swapped in after the turn-around */
 /* phone view, closed: the board's thickness as a plain maroon band on the right and along the bottom — no gilt outline, and the spine-side bottom corner stays square */
 .book.single.closedBack .leaf.bkboard .face.back{filter:drop-shadow(6px 0 0 #3a0a12) drop-shadow(0 6px 0 #3a0a12) drop-shadow(10px 20px 22px rgba(0,0,0,.5))}
@@ -1828,7 +1833,7 @@ function build(){
     const lastR=PAGES[2*(N-1)+1];
     h+=`<div class="leaf bkboard">${facec('front',!lastR||lastR.kind==='blank'?insideBackHTML():rightHTML(N-1))}${facec('back',backCoverHTML())}</div>`;   /* the back board */
   }else{
-    h+=`<div class="peek" aria-hidden="true"></div><div class="base base-s">${insideBackHTML()}</div>`;   /* the edge of the left page, peeking in at the spine */
+    h+=`<div class="foot-l" aria-hidden="true"></div><div class="foot-r" aria-hidden="true"></div><div class="peek" aria-hidden="true"></div><div class="base base-s">${insideBackHTML()}</div>`;   /* the edge of the left page, peeking in at the spine */
     for(let k=0;k<N;k++)h+=`<div class="leaf">${facec('front',k===0?coverHTML():one(k-1))}${facec('back',backHTML())}</div>`;
     h+=`<div class="leaf bkboard">${facec('front',insideBackHTML())}${facec('back',backCoverHTML())}</div>`;   /* the back board: inside endpaper, outside cover — it turns stiffly, never curls */
   }
@@ -1854,7 +1859,12 @@ function stacks(){
     bs.style.boxShadow=cur===0?'none':pile(Math.max(0,N-cur),N,1);
     const pk=book.querySelector('.peek');   /* while reading: the same page edges as the right, so the bottom runs straight across the spine; closing or closed: the read pages' own pile */
     /* the left pile is only as thick as the pages already turned: just the cover after the first turn, even with the right at the middle, everything at the end */
-    if(pk)pk.style.boxShadow=cur===N+1?'none':cur===0?'none':pile(Math.max(0,cur-2),N,book.classList.contains('closing')?-1:1);
+    if(pk)pk.style.boxShadow=cur===N+1||cur===0?'none':pile(Math.max(0,cur-2),N,-1);
+    /* where the two piles meet under the spine, each pile's slanted end is edged in maroon (the boards' edges), as on a real open book */
+    const dep=n=>n<=0?7:Math.max(1,Math.round(14*Math.sqrt(n/Math.max(1,N))))+7;
+    const fl=book.querySelector('.foot-l'),fr=book.querySelector('.foot-r'),open=cur>0&&cur<N+1;
+    if(fl){fl.style.setProperty('--d',dep(Math.max(0,cur-2))+'px');fl.style.display=open?'':'none';}
+    if(fr){fr.style.setProperty('--d',dep(Math.max(0,N-cur))+'px');fr.style.display=open?'':'none';}
   }
 }
 function syncClasses(){
@@ -2292,7 +2302,7 @@ async function intro(){
 /* site wrapper: update-on-start + offline copy. The book calls window.ybOnStart(button) when the reader taps Start;
    it resolves true only when it is reloading into a newer edition. */
 (function(){
-var B="20261116-1829-ae61dc8", pre=null, preT=0;
+var B="20261116-1837-7ec4d37", pre=null, preT=0;
 try{if(/[?&]v=/.test(location.search))history.replaceState(null,'',location.pathname+location.hash);}catch(e){}
 try{if(sessionStorage.getItem('yb-upd')===B){var s0=document.querySelector('#pwr .pwr-s');if(s0)s0.textContent='Updated to the latest version \u2713';}}catch(e){}
 function check(ms){var ctl=window.AbortController?new AbortController():null,to=setTimeout(function(){ctl&&ctl.abort();},ms||3000);
