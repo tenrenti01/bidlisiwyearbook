@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bidlisiw · PSHS-CVC Batch 2007 Yearbook</title>
-<meta name="yb-build" content="20261116-1743-9f0e0f4">
+<meta name="yb-build" content="20261116-1753-d0ac39d">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -422,7 +422,10 @@ ol.tac li .playbtn{font-size:.85em}
 .book.opening .base-l,.book.closed .base-l{opacity:0;transition:none}
 .book.atBack .base-r{opacity:0;transition:none}
 .book.closedBack{transform:translateX(calc(var(--pw) * .5))}
+.book.single{transform-origin:0 50%}
 .book.single.closedBack{transform:translateX(var(--pw))}
+/* closing the book on a phone: step back to see both halves, so the back board visibly folds over the pages */
+.book.single.closing{transform:translateX(calc(var(--pw) * .5)) scale(var(--cs,.5))}
 .book.single.atBack .base-s{opacity:0;transition:none}
 .book.single .base-s{transition:opacity .4s .5s}
 .backcover{position:absolute;inset:0;padding:7.5%;font-size:calc(var(--pw) / 23);color:var(--gilt);
@@ -621,9 +624,9 @@ ol.tac li .playbtn{font-size:.85em}
 .tabs.wrap .tab{letter-spacing:.035em;padding:5px 6px;border-radius:7px}
 /* phone view: a slim edge of the left page shows at the spine, so the book reads as open, not as a single card */
 .book .peek{display:none}
-.book.single .peek{display:block;position:absolute;top:0;right:100%;width:min(16px,calc((100vw - var(--pw)) / 2));height:100%;pointer-events:none;z-index:0;
-  border-radius:0;   /* square where it meets the spine, so the top and bottom edges run straight across */
-  background:linear-gradient(to right,rgba(70,40,15,0) 0,rgba(70,40,15,.10) 45%,rgba(70,40,15,.34) 88%,rgba(40,20,5,.5) 100%),var(--noise),linear-gradient(#ead9b4,var(--paper) 40%,var(--paper-2));
+.book.single .peek{display:block;position:absolute;top:0;right:100%;width:var(--pw);height:100%;pointer-events:none;z-index:0;
+  border-radius:var(--rp) 0 0 var(--rp);   /* a whole left page (mostly off screen while reading); square at the spine so the edges run straight across */
+  background:linear-gradient(to right,rgba(70,40,15,0) 0,rgba(70,40,15,0) calc(100% - 22px),rgba(70,40,15,.10) calc(100% - 14px),rgba(70,40,15,.34) calc(100% - 3px),rgba(40,20,5,.5) 100%),var(--noise),linear-gradient(#ead9b4,var(--paper) 40%,var(--paper-2));
   opacity:1;transform:none;transition:opacity .5s ease .25s,transform .6s cubic-bezier(.22,1,.36,1) .2s}
 .book.single.peekOff .peek{opacity:0;transform:translateX(10px);transition-delay:0s,0s}
 /* rounded outer corners everywhere under the cover: the pages, the page-edge stack (base) and the back board, so nothing square peeks out at the cover's rounded corners */
@@ -1831,13 +1834,14 @@ function stacks(){
   }else{
     const bs=book.querySelector('.base-s');if(!bs)return;
     bs.style.boxShadow=cur===0?'none':pile(Math.max(0,N-cur),N,1);
-    const pk=book.querySelector('.peek');if(pk)pk.style.boxShadow=bs.style.boxShadow;   /* same page edges under the left page, so the bottom runs straight across the spine */
+    const pk=book.querySelector('.peek');   /* while reading: the same page edges as the right, so the bottom runs straight across the spine; closing or closed: the read pages' own pile */
+    if(pk)pk.style.boxShadow=(cur===N+1||book.classList.contains('closing'))?pile(Math.max(1,cur-1),N,-1):bs.style.boxShadow;
   }
 }
 function syncClasses(){
   const back=cur===N+1;
   book.classList.toggle('closed',mode==='spread'&&cur===0);book.classList.toggle('closedBack',back);book.classList.toggle('atBack',back);book.classList.remove('opening');
-  book.classList.toggle('lastSpread',mode==='spread'&&cur===N);book.classList.toggle('peekOff',mode==='single'&&(cur===0||cur===N+1));stacks();
+  book.classList.toggle('lastSpread',mode==='spread'&&cur===N);book.classList.toggle('peekOff',mode==='single'&&cur===0);stacks();
 }
 function finishTurn(done,s){restAll();refreshVis();syncClasses();updateUI();
   if(done)sparkle(s>0);busy=false;if(pending!==null){const p=pending;pending=null;goTo(p);}}
@@ -1872,9 +1876,13 @@ async function turn(t,per){
     const k=steps[i],lastStep=i===steps.length-1;
     refreshVis([k,s>0?k+1:k-1].filter(x=>x>=0&&x<leaves.length),hide);
     if(isBoard(k)){
-      if(k===0){book.classList.add('opening');book.classList.toggle('closed',mode==='spread'&&s<0);}
-      else{book.classList.add('atBack');book.classList.toggle('closedBack',s>0);}
-      await animRigid(k,s,many?Math.max(per,.4):.9);
+      const d=many?Math.max(per,.4):.9;
+      if(k!==0&&mode==='single')await backBoardSingle(k,s,d);
+      else{
+        if(k===0){book.classList.add('opening');book.classList.toggle('closed',mode==='spread'&&s<0);}
+        else{book.classList.add('atBack');book.classList.toggle('closedBack',s>0);}
+        await animRigid(k,s,d);
+      }
     }else{
       if(i%2===0||!many)SFX.play('page');
       const cy=PH,from=mode==='single'&&s<0?{x:0,y:cy}:{x:PW-1,y:cy-1};
@@ -1884,6 +1892,17 @@ async function turn(t,per){
     if(sw&&lastStep)swapPg(sw[0],sw[1]);
     rest(k);
   }
+}
+/* phone view, back board: the view steps back until both halves fit, the board folds over the read pages (or lifts off them), then the view comes close again */
+async function backBoardSingle(k,s,d){
+  const W=stage.clientWidth||innerWidth;book.style.setProperty('--cs',Math.min(.5,(W-28)/(2*PW)).toFixed(3));
+  book.classList.add('atBack','closing');book.classList.remove('closedBack');stacks();
+  await wait(reduced?0:700);
+  await animRigid(k,s,Math.max(d,1.05));
+  cur=s>0?k+1:k;rest(k);   /* settle the board where it landed before the view comes close again */
+  await wait(reduced?0:250);
+  book.classList.remove('closing');book.classList.toggle('closedBack',s>0);if(s<0)book.classList.remove('atBack');
+  await wait(reduced?0:800);
 }
 /* closed at the back: a solid book, with its thickness, turns around to show its front */
 async function rotateToFront(){
@@ -2254,7 +2273,7 @@ async function intro(){
 /* site wrapper: update-on-start + offline copy. The book calls window.ybOnStart(button) when the reader taps Start;
    it resolves true only when it is reloading into a newer edition. */
 (function(){
-var B="20261116-1743-9f0e0f4", pre=null, preT=0;
+var B="20261116-1753-d0ac39d", pre=null, preT=0;
 try{if(/[?&]v=/.test(location.search))history.replaceState(null,'',location.pathname+location.hash);}catch(e){}
 try{if(sessionStorage.getItem('yb-upd')===B){var s0=document.querySelector('#pwr .pwr-s');if(s0)s0.textContent='Updated to the latest version \u2713';}}catch(e){}
 function check(ms){var ctl=window.AbortController?new AbortController():null,to=setTimeout(function(){ctl&&ctl.abort();},ms||3000);
