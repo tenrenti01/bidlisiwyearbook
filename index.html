@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bidlisiw · PSHS-CVC Batch 2007 Yearbook</title>
-<meta name="yb-build" content="20261116-1807-afa7ac7">
+<meta name="yb-build" content="20261116-1817-eff88c0">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -583,7 +583,10 @@ ol.tac li .playbtn{font-size:.85em}
 .cover,.backcover{box-shadow:none}
 .book.closed .base-r,.book.closedBack .base-l{box-shadow:none}
 .book.closed .leaf:first-child .face.front{filter:drop-shadow(6px 6px 0 #3a0a12) drop-shadow(1px 1px 0 #d6c398) drop-shadow(14px 22px 24px rgba(0,0,0,.55))}
-.book.closedBack .leaf.bkboard .face.back{filter:drop-shadow(-6px 6px 0 #3a0a12) drop-shadow(-1px 1px 0 #d6c398) drop-shadow(-14px 22px 24px rgba(0,0,0,.55))}
+/* closed, back side up: a solid block — the board's thickness shows at the lower right, exactly as the front cover's does, so the turn-around matches */
+.book.closedBack .leaf.bkboard .face.back{filter:drop-shadow(6px 6px 0 #3a0a12) drop-shadow(1px 1px 0 #d6c398) drop-shadow(14px 22px 24px rgba(0,0,0,.55))}
+.book.single.closedBack .peek{box-shadow:none!important}
+.book.single.peekOff .base-s+.leaf .face.front{filter:drop-shadow(6px 6px 0 #3a0a12) drop-shadow(1px 1px 0 #d6c398) drop-shadow(14px 22px 24px rgba(0,0,0,.55))}   /* phone view, closed at the front: same block thickness */
 /* left edge: the sheets already turned (the endpapers from page 1 on), then the thick board behind them */
 .base-l{box-shadow:-1px 1px 0 #dccaa2,-2px 2px 0 #c4ab7c,-3px 3px 0 #dccaa2,-4px 4px 0 #b59c6d,-5px 5px 0 #d6c398,-11px 11px 0 0 #3a0a12,-12px 12px 0 0 #2a060d,-20px 30px 55px rgba(0,0,0,.65)}
 .book.lastSpread .base-r{box-shadow:6px 6px 0 0 #3a0a12,7px 7px 0 0 #2a060d,20px 30px 55px rgba(0,0,0,.65)}
@@ -643,7 +646,7 @@ ol.tac li .playbtn{font-size:.85em}
 /* one page at a time (phones): every page sits on the right, so every page gets the rounded right-hand corners */
 #book.single .pg,#book.single .pg::before,#book.single .pg::after{border-radius:0 var(--rp) var(--rp) 0}
 .pg .endp,.pg>.endp{border-radius:inherit}
-.base-r,.base-s{border-radius:0 var(--rp) var(--rp) 0}.base-l{border-radius:var(--rp) 0 0 var(--rp)}#book.single .backcover{border-radius:0 var(--rc) var(--rc) 0}
+.base-r,.base-s{border-radius:0 var(--rp) var(--rp) 0}.base-l{border-radius:var(--rp) 0 0 var(--rp)}
 .cover .frame,.backcover .frame{border-radius:calc(var(--rc) * .5)}
 .face.front>.shd{border-radius:0 var(--rp) var(--rp) 0}.face.back>.shd{border-radius:var(--rp) 0 0 var(--rp)}#book.single .face>.shd{border-radius:0 var(--rp) var(--rp) 0}
 /* phone view: the underside of a turning page is the same sheet seen from behind — its spine edge (now on the right) stays square */
@@ -1848,7 +1851,7 @@ function stacks(){
     const bs=book.querySelector('.base-s');if(!bs)return;
     bs.style.boxShadow=cur===0?'none':pile(Math.max(0,N-cur),N,1);
     const pk=book.querySelector('.peek');   /* while reading: the same page edges as the right, so the bottom runs straight across the spine; closing or closed: the read pages' own pile */
-    if(pk)pk.style.boxShadow=(cur===N+1||book.classList.contains('closing'))?pile(Math.max(1,cur-1),N,-1):bs.style.boxShadow;
+    if(pk)pk.style.boxShadow=cur===N+1?'none':book.classList.contains('closing')?pile(Math.max(1,cur-1),N,-1):bs.style.boxShadow;
   }
 }
 function syncClasses(){
@@ -2286,7 +2289,7 @@ async function intro(){
 /* site wrapper: update-on-start + offline copy. The book calls window.ybOnStart(button) when the reader taps Start;
    it resolves true only when it is reloading into a newer edition. */
 (function(){
-var B="20261116-1807-afa7ac7", pre=null, preT=0;
+var B="20261116-1817-eff88c0", pre=null, preT=0;
 try{if(/[?&]v=/.test(location.search))history.replaceState(null,'',location.pathname+location.hash);}catch(e){}
 try{if(sessionStorage.getItem('yb-upd')===B){var s0=document.querySelector('#pwr .pwr-s');if(s0)s0.textContent='Updated to the latest version \u2713';}}catch(e){}
 function check(ms){var ctl=window.AbortController?new AbortController():null,to=setTimeout(function(){ctl&&ctl.abort();},ms||3000);
