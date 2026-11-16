@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bidlisiw · PSHS-CVC Batch 2007 Yearbook</title>
-<meta name="yb-build" content="20261116-1758-3dbe01c">
+<meta name="yb-build" content="20261116-1807-afa7ac7">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -575,9 +575,10 @@ ol.tac li .playbtn{font-size:.85em}
 .adv .ph{width:3.4em;height:3.4em;border-radius:50%;overflow:hidden;box-shadow:0 0 0 1.5px var(--gilt),0 0 0 3px rgba(140,28,44,.5);background:var(--paper-2)}
 .adv .ph img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
 .adv b{margin-top:.5em;font-family:var(--f-label);font-weight:700;font-size:.62em;letter-spacing:.06em;line-height:1.25;color:var(--crimson-d)}
-.advl{text-align:center!important;font-style:italic;font-size:.85em;color:var(--ink-soft);margin:.15em 0 .3em;padding-bottom:.45em;border-bottom:1px dotted rgba(90,67,52,.38)}
+.advl{text-align:center!important;font-style:italic;font-size:.85em;color:var(--ink-soft);margin:.15em 0 1.1em;padding-bottom:.6em;border-bottom:1px dotted rgba(90,67,52,.38)}
+.advs.one{justify-content:center}.advs.one .adv{flex:none}
 /* the inside of the back board: a blank sheet pasted down, with a thin edge of the maroon board around it */
-.pg.insideback{background:linear-gradient(#ead9b4,var(--paper) 40%,var(--paper-2));box-shadow:inset 0 0 0 6px #5e0f1b,inset 0 0 0 7px rgba(227,190,101,.35),inset 0 0 18px 6px rgba(60,20,10,.25)}
+.pg.insideback{background:linear-gradient(#ead9b4,var(--paper) 40%,var(--paper-2));box-shadow:inset 0 6px 0 #5e0f1b,inset -6px 0 0 #5e0f1b,inset 0 -6px 0 #5e0f1b,inset 0 7px 0 rgba(227,190,101,.35),inset -7px 0 0 rgba(227,190,101,.35),inset 0 -7px 0 rgba(227,190,101,.35),inset -8px 0 18px rgba(60,20,10,.18)}   /* maroon on the three outer edges only; the spine side is plain paper */
 /* one thick board, not stacked sheets */
 .cover,.backcover{box-shadow:none}
 .book.closed .base-r,.book.closedBack .base-l{box-shadow:none}
@@ -1573,7 +1574,8 @@ function composePages(){
   chap('Credits',PAGES.length);PAGES.push(...divider('VII','Credits','The hands behind the 2007 files and this book','pen'));
   const E=D.editorial;
   const cred=(id,role)=>{const w=byId[id];return `<div class="cred"><span class="ph">${face(w)}</span><div><b>${esc(w.name)}</b><span>${role}</span></div></div>`;};
-  add(page('txt','Credits',`<section class="blk">${blkH('pen','Bidlisiw · The Yearbook')}${cred('vincent','Editor-in-Chief, Animation')}${cred('ahira','Data and content compilation')}${cred('eric','Data and content compilation')}<div class="advs">${E.advisers.map(n=>{const ln=n.trim().split(/\s+/).pop().toLowerCase(),t=(typeof TEACH!=='undefined'?TEACH:[]).find(x=>(x.last||'').toLowerCase()===ln);return `<a class="adv"${t?` data-go="t:${t.code}"`:''}><span class="ph">${t&&t.photo?`<img src="${t.photo}" alt="">`:`<span class="av">${esc(n[0])}</span>`}</span><b>${esc(n)}</b></a>`;}).join('')}</div><p class="advl">Class Advisers</p></section>
+  const credP=id=>{const w=byId[id];return `<a class="adv" data-go="${id}"><span class="ph">${face(w)}</span><b>${esc(w.name)}</b></a>`;};   /* portrait above, name below */
+  add(page('txt','Credits',`<section class="blk">${blkH('pen','Bidlisiw · The Yearbook')}<div class="advs one">${credP('vincent')}</div><p class="advl">Editor-in-Chief · Animation</p><div class="advs">${credP('ahira')}${credP('eric')}</div><p class="advl">Data and content compilation</p><div class="advs">${E.advisers.map(n=>{const ln=n.trim().split(/\s+/).pop().toLowerCase(),t=(typeof TEACH!=='undefined'?TEACH:[]).find(x=>(x.last||'').toLowerCase()===ln);return `<a class="adv"${t?` data-go="t:${t.code}"`:''}><span class="ph">${t&&t.photo?`<img src="${t.photo}" alt="">`:`<span class="av">${esc(n[0])}</span>`}</span><b>${esc(n)}</b></a>`;}).join('')}</div><p class="advl">Class Advisers</p></section>
     <section class="blk">${blkH('letter','The 2007 request letter')}<p class="small">Sent 15 March 2007 to Malacañang, the DOST Secretary, the PSHS System Executive Director, Hon. Carlos M. Padilla, the Congressman, Governor and Mayor, and the PTCA President; signed by ${esc(E.letter_signed)} for the 2007 editorial board and noted by the advisers.</p></section>
     <section class="blk">${blkH('sun','Bidlisiw')}<p>The batch name means <i>a ray of light</i>: the sunburst on the cover, the gilt rays behind each name, the embers below the book.</p></section>`,true));
   add(page('txt','Colophon',`<section class="blk">${blkH('disc','How the original files were wired')}<div class="mono">Main.swf → Menu.swf → Grads.swf → one .swf per batchmate (60) · Undergrads.swf · Fac_And_Staf.swf · Credits.swf [optional] · Flash Player 8, 985 × 570</div></section>
@@ -1582,8 +1584,8 @@ function composePages(){
     <p class="small">Contact details appear exactly as typed in 2007 and are almost certainly out of date. Blank lines on a batchmate's page are facts we have not found yet.</p>`,true));
   window.__yb={PAGES,CHAPTERS,PERSON_PAGE,PAGE0};
   if(PAGES.length%2)add(page('blank','',''));
-  /* a blank leaf, then the inside of the back cover */
-  add(page('blank','',''));add(page('blank','',''));
+  /* one blank leaf, then the inside of the back cover (the back board itself) */
+  add(page('blank','',''));
 }
 const blankPage=side=>`<div class="pg ${side}"></div>`;
 function pageHTML(k,side){const p=PAGES[k];if(!p||p.kind==='blank'||p.kind==='end')return blankPage(side);
@@ -1818,7 +1820,8 @@ function build(){
   if(mode==='spread'){
     h+=`<div class="base base-l">${endHTML()}</div><div class="base base-r">${rightHTML(N-1)}</div>`;
     for(let k=0;k<N;k++)h+=`<div class="leaf">${facec('front',k===0?coverHTML():rightHTML(k-1))}${facec('back',leftHTML(k))}</div>`;
-    h+=`<div class="leaf bkboard">${facec('front',rightHTML(N-1))}${facec('back',backCoverHTML())}</div>`;   /* the back board */
+    const lastR=PAGES[2*(N-1)+1];
+    h+=`<div class="leaf bkboard">${facec('front',!lastR||lastR.kind==='blank'?insideBackHTML():rightHTML(N-1))}${facec('back',backCoverHTML())}</div>`;   /* the back board */
   }else{
     h+=`<div class="peek" aria-hidden="true"></div><div class="base base-s">${insideBackHTML()}</div>`;   /* the edge of the left page, peeking in at the spine */
     for(let k=0;k<N;k++)h+=`<div class="leaf">${facec('front',k===0?coverHTML():one(k-1))}${facec('back',backHTML())}</div>`;
@@ -1951,7 +1954,7 @@ function updateUI(){
   const atBack=cur===N+1,inBack=mode==='single'&&cur===N;   /* inBack: the inside of the back board, one tap before the book closes */
   prevB.disabled=cur===0;nextB.disabled=false;
   nextB.title=atBack?'Turn the book around':'Next page';
-  const pgs=curPages(),p0=PAGES[pgs[0]]||null,p1=PAGES[pgs[pgs.length-1]]||null,pp=(p1&&p1.pid)?p1:p0;
+  const pgs=curPages().filter(k=>k<PAGES.length),p0=PAGES[pgs[0]]||null,p1=PAGES[pgs[pgs.length-1]]||null,pp=(p1&&p1.pid)?p1:p0;
   let on=0;CHAPTERS.forEach(([,k],i)=>{if(k<=(pgs[0]??-1))on=i;});
   if(atBack||inBack)on=CHAPTERS.length-1;
   chapEl.textContent=cur===0?'Bidlisiw':atBack?'Back cover':inBack?'The end':(pp&&pp.pid?byId[pp.pid].name:pp&&pp.tid?tName(tById[pp.tid]):CHAPTERS[on][0]);
@@ -2283,7 +2286,7 @@ async function intro(){
 /* site wrapper: update-on-start + offline copy. The book calls window.ybOnStart(button) when the reader taps Start;
    it resolves true only when it is reloading into a newer edition. */
 (function(){
-var B="20261116-1758-3dbe01c", pre=null, preT=0;
+var B="20261116-1807-afa7ac7", pre=null, preT=0;
 try{if(/[?&]v=/.test(location.search))history.replaceState(null,'',location.pathname+location.hash);}catch(e){}
 try{if(sessionStorage.getItem('yb-upd')===B){var s0=document.querySelector('#pwr .pwr-s');if(s0)s0.textContent='Updated to the latest version \u2713';}}catch(e){}
 function check(ms){var ctl=window.AbortController?new AbortController():null,to=setTimeout(function(){ctl&&ctl.abort();},ms||3000);
