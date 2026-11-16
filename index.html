@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bidlisiw · PSHS-CVC Batch 2007 Yearbook</title>
-<meta name="yb-build" content="20261116-1753-d0ac39d">
+<meta name="yb-build" content="20261116-1758-3dbe01c">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -570,6 +570,14 @@ ol.tac li .playbtn{font-size:.85em}
 .cred .ph img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
 .cred b{display:block;font-family:var(--f-label);font-weight:700;font-size:.82em;letter-spacing:.08em;color:var(--crimson-d)}
 .cred span{display:block;font-size:.9em;color:var(--ink-soft);font-style:italic}
+.advs{display:flex;justify-content:space-around;gap:.6em;padding:.7em 0 .2em}
+.adv{display:flex;flex-direction:column;align-items:center;text-align:center;flex:1;min-width:0;cursor:pointer}
+.adv .ph{width:3.4em;height:3.4em;border-radius:50%;overflow:hidden;box-shadow:0 0 0 1.5px var(--gilt),0 0 0 3px rgba(140,28,44,.5);background:var(--paper-2)}
+.adv .ph img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+.adv b{margin-top:.5em;font-family:var(--f-label);font-weight:700;font-size:.62em;letter-spacing:.06em;line-height:1.25;color:var(--crimson-d)}
+.advl{text-align:center!important;font-style:italic;font-size:.85em;color:var(--ink-soft);margin:.15em 0 .3em;padding-bottom:.45em;border-bottom:1px dotted rgba(90,67,52,.38)}
+/* the inside of the back board: a blank sheet pasted down, with a thin edge of the maroon board around it */
+.pg.insideback{background:linear-gradient(#ead9b4,var(--paper) 40%,var(--paper-2));box-shadow:inset 0 0 0 6px #5e0f1b,inset 0 0 0 7px rgba(227,190,101,.35),inset 0 0 18px 6px rgba(60,20,10,.25)}
 /* one thick board, not stacked sheets */
 .cover,.backcover{box-shadow:none}
 .book.closed .base-r,.book.closedBack .base-l{box-shadow:none}
@@ -637,6 +645,8 @@ ol.tac li .playbtn{font-size:.85em}
 .base-r,.base-s{border-radius:0 var(--rp) var(--rp) 0}.base-l{border-radius:var(--rp) 0 0 var(--rp)}#book.single .backcover{border-radius:0 var(--rc) var(--rc) 0}
 .cover .frame,.backcover .frame{border-radius:calc(var(--rc) * .5)}
 .face.front>.shd{border-radius:0 var(--rp) var(--rp) 0}.face.back>.shd{border-radius:var(--rp) 0 0 var(--rp)}#book.single .face>.shd{border-radius:0 var(--rp) var(--rp) 0}
+/* phone view: the underside of a turning page is the same sheet seen from behind — its spine edge (now on the right) stays square */
+#book.single .face.back .pg,#book.single .face.back .pg::before,#book.single .face.back .pg::after,#book.single .face.back>.shd{border-radius:var(--rp) 0 0 var(--rp)}
 .playbtn.find{border-style:dashed;background:transparent;opacity:.85}.playbtn.find:hover{opacity:1}
 .bsong{display:inline-block;margin-left:.35em;font-family:var(--f-label);font-size:.62em;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);border:1px solid rgba(168,123,46,.5);border-radius:3px;padding:.05em .4em;vertical-align:middle}
 /* songs play hidden in the background: the play button itself shows that it is playing (tap again to stop) */
@@ -1563,7 +1573,7 @@ function composePages(){
   chap('Credits',PAGES.length);PAGES.push(...divider('VII','Credits','The hands behind the 2007 files and this book','pen'));
   const E=D.editorial;
   const cred=(id,role)=>{const w=byId[id];return `<div class="cred"><span class="ph">${face(w)}</span><div><b>${esc(w.name)}</b><span>${role}</span></div></div>`;};
-  add(page('txt','Credits',`<section class="blk">${blkH('pen','Bidlisiw · The Yearbook')}${cred('vincent','Editor-in-Chief, Animation')}${cred('ahira','Data and content compilation')}${cred('eric','Data and content compilation')}<div class="cred"><span class="ph"><span class="av">A</span></span><div><b>${E.advisers.map(esc).join(', ')}</b><span>Advisers</span></div></div><div class="cred"><span class="ph"><span class="av">60</span></span><div><b>Every batchmate</b><span>wrote ${s.testimonials} testimonials about each other</span></div></div></section>
+  add(page('txt','Credits',`<section class="blk">${blkH('pen','Bidlisiw · The Yearbook')}${cred('vincent','Editor-in-Chief, Animation')}${cred('ahira','Data and content compilation')}${cred('eric','Data and content compilation')}<div class="advs">${E.advisers.map(n=>{const ln=n.trim().split(/\s+/).pop().toLowerCase(),t=(typeof TEACH!=='undefined'?TEACH:[]).find(x=>(x.last||'').toLowerCase()===ln);return `<a class="adv"${t?` data-go="t:${t.code}"`:''}><span class="ph">${t&&t.photo?`<img src="${t.photo}" alt="">`:`<span class="av">${esc(n[0])}</span>`}</span><b>${esc(n)}</b></a>`;}).join('')}</div><p class="advl">Class Advisers</p></section>
     <section class="blk">${blkH('letter','The 2007 request letter')}<p class="small">Sent 15 March 2007 to Malacañang, the DOST Secretary, the PSHS System Executive Director, Hon. Carlos M. Padilla, the Congressman, Governor and Mayor, and the PTCA President; signed by ${esc(E.letter_signed)} for the 2007 editorial board and noted by the advisers.</p></section>
     <section class="blk">${blkH('sun','Bidlisiw')}<p>The batch name means <i>a ray of light</i>: the sunburst on the cover, the gilt rays behind each name, the embers below the book.</p></section>`,true));
   add(page('txt','Colophon',`<section class="blk">${blkH('disc','How the original files were wired')}<div class="mono">Main.swf → Menu.swf → Grads.swf → one .swf per batchmate (60) · Undergrads.swf · Fac_And_Staf.swf · Credits.swf [optional] · Flash Player 8, 985 × 570</div></section>
@@ -1589,7 +1599,7 @@ const coverHTML=()=>`<div class="cover"><div class="frame"><i class="corner tl">
 const backCoverHTML=()=>`<div class="backcover"><div class="frame"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>${sunSVG('emblem',100,100,92)}<div class="motto">“Mag-iba man ang mundo,<br>mag-iba man ang Bangan Hill,<br>naging Pisay pa rin tayo.”</div><div class="by">designed by <span class="ig"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg><b><i>@</i>tenrenti</b></span></div></div></div>`;
 const endHTML=()=>`<div class="pg l endp"><div class="exlib">Ex Libris<br>Bidlisiw</div></div>`;
 const backHTML=()=>`<div class="pg l paperback"></div>`;
-const insideBackHTML=()=>`<div class="pg r endp"></div>`;   /* the inside of the back board */
+const insideBackHTML=()=>`<div class="pg r insideback"></div>`;   /* the inside of the back board */
 
 /* ===================== Our Teachers: a divider, then one spread per teacher =====================
    left page: portrait, name, what the batch called them, subjects and year levels, and — drawn faintly in the
@@ -2244,8 +2254,8 @@ async function intro(){
   let T=null;try{if(window.THREE)T=startTorch($('torchwrap'));}catch(err){T=null;}
   if(!T){try{T=startTorch2D($('torchwrap'));}catch(err){return reveal(null);}}
   T.setK(0);T.go();
-  /* darkness first: only the sound of burning embers, slowly growing, for three seconds before the hymn begins */
-  await ramp(3000,e=>SFX.fire(.04+.56*e*e));
+  /* darkness first: only the sound of burning embers, slowly growing, for six seconds before the hymn begins */
+  await ramp(6000,e=>SFX.fire(.04+.56*e*e));
   /* the hymn starts here; everything up to the fully grown fire is budgeted to its first 12 seconds:
      0.0–3.2 the torch ignites · 3.2–6.2 it turns (speeding up, slowing down) · 6.2–8.3 the batch name · 8.3–9.6 it fades · 9.6–12.0 the fire grows */
   const lead=await SFX.hymn();await wait(Math.max(0,Math.min(600,lead||350)));
@@ -2273,7 +2283,7 @@ async function intro(){
 /* site wrapper: update-on-start + offline copy. The book calls window.ybOnStart(button) when the reader taps Start;
    it resolves true only when it is reloading into a newer edition. */
 (function(){
-var B="20261116-1753-d0ac39d", pre=null, preT=0;
+var B="20261116-1758-3dbe01c", pre=null, preT=0;
 try{if(/[?&]v=/.test(location.search))history.replaceState(null,'',location.pathname+location.hash);}catch(e){}
 try{if(sessionStorage.getItem('yb-upd')===B){var s0=document.querySelector('#pwr .pwr-s');if(s0)s0.textContent='Updated to the latest version \u2713';}}catch(e){}
 function check(ms){var ctl=window.AbortController?new AbortController():null,to=setTimeout(function(){ctl&&ctl.abort();},ms||3000);
