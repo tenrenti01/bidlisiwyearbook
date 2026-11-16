@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bidlisiw · PSHS-CVC Batch 2007 Yearbook</title>
-<meta name="yb-build" content="20261116-1725-3fd1c15">
+<meta name="yb-build" content="20261116-1743-9f0e0f4">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -422,6 +422,9 @@ ol.tac li .playbtn{font-size:.85em}
 .book.opening .base-l,.book.closed .base-l{opacity:0;transition:none}
 .book.atBack .base-r{opacity:0;transition:none}
 .book.closedBack{transform:translateX(calc(var(--pw) * .5))}
+.book.single.closedBack{transform:translateX(var(--pw))}
+.book.single.atBack .base-s{opacity:0;transition:none}
+.book.single .base-s{transition:opacity .4s .5s}
 .backcover{position:absolute;inset:0;padding:7.5%;font-size:calc(var(--pw) / 23);color:var(--gilt);
   background:var(--leather) 0 0/calc(var(--pw) * .34) repeat,radial-gradient(ellipse at 70% 22%,rgba(255,220,200,.08),transparent 55%),var(--noise),linear-gradient(to left,#33070e 0,#5a0f1b 4.5%,#771729 50%,#5e0f1b 100%);background-blend-mode:overlay,normal,normal,normal;
   box-shadow:inset -5px 0 12px rgba(0,0,0,.55),inset 2px 0 3px rgba(0,0,0,.4);border-radius:var(--rc) 0 0 var(--rc);display:flex;align-items:center;justify-content:center}
@@ -568,7 +571,7 @@ ol.tac li .playbtn{font-size:.85em}
 .cover,.backcover{box-shadow:none}
 .book.closed .base-r,.book.closedBack .base-l{box-shadow:none}
 .book.closed .leaf:first-child .face.front{filter:drop-shadow(6px 6px 0 #3a0a12) drop-shadow(1px 1px 0 #d6c398) drop-shadow(14px 22px 24px rgba(0,0,0,.55))}
-.book.closedBack .leaf:last-child .face.back{filter:drop-shadow(-6px 6px 0 #3a0a12) drop-shadow(-1px 1px 0 #d6c398) drop-shadow(-14px 22px 24px rgba(0,0,0,.55))}
+.book.closedBack .leaf.bkboard .face.back{filter:drop-shadow(-6px 6px 0 #3a0a12) drop-shadow(-1px 1px 0 #d6c398) drop-shadow(-14px 22px 24px rgba(0,0,0,.55))}
 /* left edge: the sheets already turned (the endpapers from page 1 on), then the thick board behind them */
 .base-l{box-shadow:-1px 1px 0 #dccaa2,-2px 2px 0 #c4ab7c,-3px 3px 0 #dccaa2,-4px 4px 0 #b59c6d,-5px 5px 0 #d6c398,-11px 11px 0 0 #3a0a12,-12px 12px 0 0 #2a060d,-20px 30px 55px rgba(0,0,0,.65)}
 .book.lastSpread .base-r{box-shadow:6px 6px 0 0 #3a0a12,7px 7px 0 0 #2a060d,20px 30px 55px rgba(0,0,0,.65)}
@@ -1583,6 +1586,7 @@ const coverHTML=()=>`<div class="cover"><div class="frame"><i class="corner tl">
 const backCoverHTML=()=>`<div class="backcover"><div class="frame"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>${sunSVG('emblem',100,100,92)}<div class="motto">“Mag-iba man ang mundo,<br>mag-iba man ang Bangan Hill,<br>naging Pisay pa rin tayo.”</div><div class="by">designed by <span class="ig"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg><b><i>@</i>tenrenti</b></span></div></div></div>`;
 const endHTML=()=>`<div class="pg l endp"><div class="exlib">Ex Libris<br>Bidlisiw</div></div>`;
 const backHTML=()=>`<div class="pg l paperback"></div>`;
+const insideBackHTML=()=>`<div class="pg r endp"></div>`;   /* the inside of the back board */
 
 /* ===================== Our Teachers: a divider, then one spread per teacher =====================
    left page: portrait, name, what the batch called them, subjects and year levels, and — drawn faintly in the
@@ -1713,7 +1717,7 @@ function teacherPages(add,chap){
 /* ===================== book engine: a 2D page curl that follows the finger, hard covers, a riffle for long jumps ===================== */
 const stage=$('stage'),book=$('book'),ctrl=$('ctrl'),prevB=$('prev'),nextB=$('next'),chapEl=$('chap'),cntEl=$('cnt'),tabsEl=$('tabs'),jumpEl=$('jump'),zoomwrap=$('zoomwrap'),spine=$('spine');
 let mode=null,cur=0,busy=false,pending=null,leaves=[],cast=null,PW=440,PH=630,FS=15,N=0;
-const MAXC=()=>mode==='spread'?N+1:N;           /* in a spread, position N+1 is "closed at the back" */
+const MAXC=()=>N+1;           /* position N+1 is "closed at the back": the back board has been turned (spread and phone view alike) */
 const spreadIdx=()=>mode==='single'?Math.ceil(cur/2):cur;
 const toMode=(sp,m)=>m==='single'?(sp?2*sp-1:0):sp;
 const leftHTML=k=>pageHTML(2*k,'l'),rightHTML=k=>pageHTML(2*k+1,'r'),one=j=>j>=PAGES.length?backCoverHTML():pageHTML(j,j%2?'r':'l');
@@ -1777,13 +1781,13 @@ function animRigid(k,s,dur){
       if(t<1)requestAnimationFrame(step);else done();};
     requestAnimationFrame(step);});
 }
-const isBoard=k=>k===0||(mode==='spread'&&k===N);
+const isBoard=k=>k===0||k===N;   /* leaf 0 is the front board, leaf N the back board */
 function rest(k){const l=leaves[k],fr=l.children[0],bk=l.children[1],f=k<cur;
   fr.style.visibility=f?'hidden':'visible';fr.style.clipPath='none';fr.style.transform='none';fr.lastElementChild.style.background='none';
   bk.style.visibility=f?'visible':'hidden';bk.style.clipPath='none';bk.style.transform='translateX(-100%)';bk.lastElementChild.style.background='none';
   l.style.zIndex=f?k+1:leaves.length-k+1;}
 function restAll(){leaves.forEach((_,k)=>rest(k));if(cast)cast.style.display='none';}
-function inRange(k){return mode==='spread'?(k>=cur-2&&k<=cur+1):(k===cur||k===cur+1);}
+function inRange(k){return mode==='spread'?(k>=cur-2&&k<=cur+1):(k===cur||k===cur+1||(cur===N+1&&k===N));}
 function refreshVis(extra=[],hide=[]){leaves.forEach((l,k)=>l.classList.toggle('off',!(inRange(k)||extra.includes(k))||hide.includes(k)));}
 function swapPg(f1,f2){const a=f1.firstElementChild,b=f2.firstElementChild,m=document.createComment('');a.replaceWith(m);b.replaceWith(a);m.replaceWith(b);}
 function fitPages(){
@@ -1801,10 +1805,11 @@ function build(){
   if(mode==='spread'){
     h+=`<div class="base base-l">${endHTML()}</div><div class="base base-r">${rightHTML(N-1)}</div>`;
     for(let k=0;k<N;k++)h+=`<div class="leaf">${facec('front',k===0?coverHTML():rightHTML(k-1))}${facec('back',leftHTML(k))}</div>`;
-    h+=`<div class="leaf">${facec('front',rightHTML(N-1))}${facec('back',backCoverHTML())}</div>`;   /* the back board */
+    h+=`<div class="leaf bkboard">${facec('front',rightHTML(N-1))}${facec('back',backCoverHTML())}</div>`;   /* the back board */
   }else{
-    h+=`<div class="peek" aria-hidden="true"></div><div class="base base-s">${one(N-1)}</div>`;   /* the edge of the left page, peeking in at the spine */
+    h+=`<div class="peek" aria-hidden="true"></div><div class="base base-s">${insideBackHTML()}</div>`;   /* the edge of the left page, peeking in at the spine */
     for(let k=0;k<N;k++)h+=`<div class="leaf">${facec('front',k===0?coverHTML():one(k-1))}${facec('back',backHTML())}</div>`;
+    h+=`<div class="leaf bkboard">${facec('front',insideBackHTML())}${facec('back',backCoverHTML())}</div>`;   /* the back board: inside endpaper, outside cover — it turns stiffly, never curls */
   }
   h+='<div class="cast"></div>';
   book.innerHTML=h;leaves=[...book.querySelectorAll('.leaf')];cast=book.querySelector('.cast');
@@ -1830,9 +1835,9 @@ function stacks(){
   }
 }
 function syncClasses(){
-  const back=mode==='spread'&&cur===N+1;
+  const back=cur===N+1;
   book.classList.toggle('closed',mode==='spread'&&cur===0);book.classList.toggle('closedBack',back);book.classList.toggle('atBack',back);book.classList.remove('opening');
-  book.classList.toggle('lastSpread',mode==='spread'&&cur===N);book.classList.toggle('peekOff',mode==='single'&&(cur===0||cur===N));stacks();
+  book.classList.toggle('lastSpread',mode==='spread'&&cur===N);book.classList.toggle('peekOff',mode==='single'&&(cur===0||cur===N+1));stacks();
 }
 function finishTurn(done,s){restAll();refreshVis();syncClasses();updateUI();
   if(done)sparkle(s>0);busy=false;if(pending!==null){const p=pending;pending=null;goTo(p);}}
@@ -1844,8 +1849,7 @@ async function goTo(t){
   if(t===cur)return;
   busy=true;
   /* the boards turn on their own, never inside a riffle: split the trip at the cover and at the back board */
-  const stops=[];if(mode==='spread'){if(cur===0&&t>1)stops.push(1);if(cur>1&&t===0)stops.push(1);if(cur<N&&t===N+1)stops.push(N);if(cur===N+1&&t<N)stops.push(N);}
-  else{if(cur===0&&t>1)stops.push(1);if(cur>1&&t===0)stops.push(1);}
+  const stops=[];if(cur===0&&t>1)stops.push(1);if(cur>1&&t===0)stops.push(1);if(cur<N&&t===N+1)stops.push(N);if(cur===N+1&&t<N)stops.push(N);
   const legs=[...stops,t];let total=0,from=cur;for(const st of legs){total+=Math.min(12,Math.abs(st-from));from=st;}
   const per=total<=1?.95:Math.min(.95,.5/total);   /* a jump of any length lands within 500 ms; a single turn keeps its full curl */
   for(const st of legs){await turn(st,per);}
@@ -1883,7 +1887,7 @@ async function turn(t,per){
 }
 /* closed at the back: a solid book, with its thickness, turns around to show its front */
 async function rotateToFront(){
-  if(busy||!(mode==='spread'&&cur===N+1))return;
+  if(busy||cur!==N+1)return;
   busy=true;SFX.play('whoosh');
   const T=Math.max(22,Math.round(PW*.075));
   const blk=document.createElement('div');blk.className='book3d';blk.style.setProperty('--t',T+'px');
@@ -1903,7 +1907,7 @@ async function rotateToFront(){
 }
 function openPage(p){p=Math.max(0,Math.min(PAGES.length-1,p));goTo(mode==='spread'?Math.floor(p/2)+1:p+1);}
 function openPerson(id){if(PERSON_PAGE[id]!==undefined)openPage(PERSON_PAGE[id]);}
-function curPages(){if(cur===0||(mode==='spread'&&cur===N+1))return[];return mode==='spread'?[2*(cur-1),2*(cur-1)+1]:[cur-1];}
+function curPages(){if(cur===0||cur===N+1||(mode==='single'&&cur===N))return[];return mode==='spread'?[2*(cur-1),2*(cur-1)+1]:[cur-1];}
 /* the endpaper's last line is typed out, letter by letter, once the three counts have appeared */
 function untype(el){if(el._ty){clearTimeout(el._ty);el._ty=0;}const l=el.querySelector('.l');if(l&&l.dataset.full){l.textContent=l.dataset.full;l.classList.remove('typing');}}
 function typeSince(el){
@@ -1915,14 +1919,14 @@ function typeSince(el){
   el._ty=setTimeout(step,5600);
 }
 function updateUI(){
-  const atBack=(mode==='spread'&&cur===N+1)||(mode==='single'&&cur===N);
-  prevB.disabled=cur===0;nextB.disabled=mode==='single'&&cur===N;
+  const atBack=cur===N+1,inBack=mode==='single'&&cur===N;   /* inBack: the inside of the back board, one tap before the book closes */
+  prevB.disabled=cur===0;nextB.disabled=false;
   nextB.title=atBack?'Turn the book around':'Next page';
   const pgs=curPages(),p0=PAGES[pgs[0]]||null,p1=PAGES[pgs[pgs.length-1]]||null,pp=(p1&&p1.pid)?p1:p0;
   let on=0;CHAPTERS.forEach(([,k],i)=>{if(k<=(pgs[0]??-1))on=i;});
-  if(atBack)on=CHAPTERS.length-1;
-  chapEl.textContent=cur===0?'Bidlisiw':atBack?'Back cover':(pp&&pp.pid?byId[pp.pid].name:pp&&pp.tid?tName(tById[pp.tid]):CHAPTERS[on][0]);
-  const NP=PAGES.length-PAGE0,pn=k=>k+1-PAGE0;cntEl.textContent=cur===0?'Closed':atBack?(mode==='spread'?'Closed · tap to turn around':'Closed'):(pgs.length>1?(pgs[1]<PAGE0?((PAGES[pgs[1]]||{}).front||'Endpapers'):`Pages ${pn(pgs[0])}–${pn(pgs[1])} of ${NP}`):(pgs[0]<PAGE0?((PAGES[pgs[0]]||{}).front||'Endpaper'):`Page ${pn(pgs[0])} of ${NP}`));
+  if(atBack||inBack)on=CHAPTERS.length-1;
+  chapEl.textContent=cur===0?'Bidlisiw':atBack?'Back cover':inBack?'The end':(pp&&pp.pid?byId[pp.pid].name:pp&&pp.tid?tName(tById[pp.tid]):CHAPTERS[on][0]);
+  const NP=PAGES.length-PAGE0,pn=k=>k+1-PAGE0;cntEl.textContent=cur===0?'Closed':atBack?'Closed · tap to turn around':inBack?'Inside back cover':(pgs.length>1?(pgs[1]<PAGE0?((PAGES[pgs[1]]||{}).front||'Endpapers'):`Pages ${pn(pgs[0])}–${pn(pgs[1])} of ${NP}`):(pgs[0]<PAGE0?((PAGES[pgs[0]]||{}).front||'Endpaper'):`Page ${pn(pgs[0])} of ${NP}`));
   [...tabsEl.children].forEach((b,i)=>{b.classList.toggle('on',i===on);b.setAttribute('aria-selected',i===on);});
   const act=tabsEl.children[on];if(act&&tabsEl.scrollWidth>tabsEl.clientWidth){tabsEl.scrollTo({left:act.offsetLeft-tabsEl.clientWidth/2+act.offsetWidth/2,behavior:reduced?'auto':'smooth'});}
   jumpEl.value='';fitChap();   /* the name list always reads "Find a name"; the caption above says where you are */
@@ -1940,10 +1944,10 @@ jumpEl.addEventListener('change',e=>{if(e.target.value)openPerson(e.target.value
 prevB.addEventListener('click',()=>goTo(cur-1));
 $('edgePrev').addEventListener('click',()=>goTo(cur-1));$('edgeNext').addEventListener('click',()=>goTo(cur+1));
 $('edgePrev').addEventListener('click',()=>goTo(cur-1));$('edgeNext').addEventListener('click',()=>goTo(cur+1));
-nextB.addEventListener('click',()=>{if(mode==='spread'&&cur===N+1)rotateToFront();else goTo(cur+1);});
+nextB.addEventListener('click',()=>{if(cur===N+1)rotateToFront();else goTo(cur+1);});
 addEventListener('keydown',e=>{
   if(e.target.matches('select,input'))return;
-  if(e.key==='ArrowRight'||e.key==='PageDown'){if(mode==='spread'&&cur===N+1)rotateToFront();else goTo(cur+1);e.preventDefault();}
+  if(e.key==='ArrowRight'||e.key==='PageDown'){if(cur===N+1)rotateToFront();else goTo(cur+1);e.preventDefault();}
   else if(e.key==='ArrowLeft'||e.key==='PageUp'){goTo(cur-1);e.preventDefault();}
   else if(e.key==='Home'){goTo(0);}else if(e.key==='End'){goTo(MAXC());}
 });
@@ -1965,7 +1969,7 @@ function tap(e){
   const yq=e.target.closest&&e.target.closest('[data-ytq]');
   if(yq){SFX.play('tap');window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(yq.dataset.ytq),'_blank','noopener');return;}
   if(cur===0){goTo(1);return;}
-  if(mode==='spread'&&cur===N+1){rotateToFront();return;}
+  if(cur===N+1){rotateToFront();return;}
   const r=book.getBoundingClientRect(),x=e.clientX;
   if(mode==='spread'){x>=r.left+r.width/2?goTo(cur+1):goTo(cur-1);}
   else{if(x>r.left+r.width*.62)goTo(cur+1);else if(x<r.left+r.width*.38)goTo(cur-1);}
@@ -1981,7 +1985,7 @@ book.addEventListener('pointermove',e=>{
   if(!drag.act){
     if(Math.abs(dx)<8||Math.abs(dx)<Math.abs(dy)*1.1)return;
     const s=dx<0?1:-1,k=s>0?cur:cur-1;
-    if(busy||k<0||k>=leaves.length||isBoard(k)||(mode==='spread'&&cur===N+1)){drag=null;return;}   /* boards and the closed back do not curl */
+    if(busy||k<0||k>=leaves.length||isBoard(k)||cur===N+1){drag=null;return;}   /* boards and the closed back do not curl */
     const r=book.getBoundingClientRect();
     const back1=mode==='single'&&s<0;Object.assign(drag,{act:true,s,k,cy:(drag.y0-r.top)<PH/2?0:PH,x0:e.clientX,y0:e.clientY,base:back1?0:PW,sens:mode==='single'&&s>0?2:1});
     busy=true;try{book.setPointerCapture(e.pointerId);}catch(_){}
@@ -2221,12 +2225,13 @@ async function intro(){
   let T=null;try{if(window.THREE)T=startTorch($('torchwrap'));}catch(err){T=null;}
   if(!T){try{T=startTorch2D($('torchwrap'));}catch(err){return reveal(null);}}
   T.setK(0);T.go();
-  await wait(600);
+  /* darkness first: only the sound of burning embers, slowly growing, for three seconds before the hymn begins */
+  await ramp(3000,e=>SFX.fire(.04+.56*e*e));
   /* the hymn starts here; everything up to the fully grown fire is budgeted to its first 12 seconds:
      0.0–3.2 the torch ignites · 3.2–6.2 it turns (speeding up, slowing down) · 6.2–8.3 the batch name · 8.3–9.6 it fades · 9.6–12.0 the fire grows */
   const lead=await SFX.hymn();await wait(Math.max(0,Math.min(600,lead||350)));
   SFX.play('ignite');
-  await ramp(3200,e=>{T.setK(e);veil.style.opacity=1-e;SFX.fire(.75*e);});
+  await ramp(3200,e=>{T.setK(e);veil.style.opacity=1-e;SFX.fire(.6+.15*e);});
   SFX.play('revolve');
   await Promise.all([T.spin(3000,.5),T.tilt(30,3000)]);
   sign.classList.add('hl');SFX.play('chime');await wait(2100);
@@ -2249,7 +2254,7 @@ async function intro(){
 /* site wrapper: update-on-start + offline copy. The book calls window.ybOnStart(button) when the reader taps Start;
    it resolves true only when it is reloading into a newer edition. */
 (function(){
-var B="20261116-1725-3fd1c15", pre=null, preT=0;
+var B="20261116-1743-9f0e0f4", pre=null, preT=0;
 try{if(/[?&]v=/.test(location.search))history.replaceState(null,'',location.pathname+location.hash);}catch(e){}
 try{if(sessionStorage.getItem('yb-upd')===B){var s0=document.querySelector('#pwr .pwr-s');if(s0)s0.textContent='Updated to the latest version \u2713';}}catch(e){}
 function check(ms){var ctl=window.AbortController?new AbortController():null,to=setTimeout(function(){ctl&&ctl.abort();},ms||3000);
