@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bidlisiw · PSHS-CVC Batch 2007 Yearbook</title>
-<meta name="yb-build" content="20261116-1824-919cb18">
+<meta name="yb-build" content="20261116-1827-2303a6a">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -1852,7 +1852,8 @@ function stacks(){
     const bs=book.querySelector('.base-s');if(!bs)return;
     bs.style.boxShadow=cur===0?'none':pile(Math.max(0,N-cur),N,1);
     const pk=book.querySelector('.peek');   /* while reading: the same page edges as the right, so the bottom runs straight across the spine; closing or closed: the read pages' own pile */
-    if(pk)pk.style.boxShadow=cur===N+1?'none':book.classList.contains('closing')?pile(Math.max(1,cur-1),N,-1):bs.style.boxShadow;
+    /* the left pile is only as thick as the pages already turned: just the cover after the first turn, even with the right at the middle, everything at the end */
+    if(pk)pk.style.boxShadow=cur===N+1?'none':cur===0?'none':pile(Math.max(0,cur-2),N,book.classList.contains('closing')?-1:1);
   }
 }
 function syncClasses(){
@@ -2290,7 +2291,7 @@ async function intro(){
 /* site wrapper: update-on-start + offline copy. The book calls window.ybOnStart(button) when the reader taps Start;
    it resolves true only when it is reloading into a newer edition. */
 (function(){
-var B="20261116-1824-919cb18", pre=null, preT=0;
+var B="20261116-1827-2303a6a", pre=null, preT=0;
 try{if(/[?&]v=/.test(location.search))history.replaceState(null,'',location.pathname+location.hash);}catch(e){}
 try{if(sessionStorage.getItem('yb-upd')===B){var s0=document.querySelector('#pwr .pwr-s');if(s0)s0.textContent='Updated to the latest version \u2713';}}catch(e){}
 function check(ms){var ctl=window.AbortController?new AbortController():null,to=setTimeout(function(){ctl&&ctl.abort();},ms||3000);
