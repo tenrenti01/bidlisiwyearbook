@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bidlisiw · PSHS-CVC Batch 2007 Yearbook</title>
-<meta name="yb-build" content="20261115-1403-caf7b91">
+<meta name="yb-build" content="20261116-1725-3fd1c15">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -619,9 +619,8 @@ ol.tac li .playbtn{font-size:.85em}
 /* phone view: a slim edge of the left page shows at the spine, so the book reads as open, not as a single card */
 .book .peek{display:none}
 .book.single .peek{display:block;position:absolute;top:0;right:100%;width:min(16px,calc((100vw - var(--pw)) / 2));height:100%;pointer-events:none;z-index:0;
-  border-radius:0 calc(var(--rp) * .9) calc(var(--rp) * .9) 0;
+  border-radius:0;   /* square where it meets the spine, so the top and bottom edges run straight across */
   background:linear-gradient(to right,rgba(70,40,15,0) 0,rgba(70,40,15,.10) 45%,rgba(70,40,15,.34) 88%,rgba(40,20,5,.5) 100%),var(--noise),linear-gradient(#ead9b4,var(--paper) 40%,var(--paper-2));
-  box-shadow:-1px 1px 0 #dccaa2,-2px 2px 0 #c4ab7c,-3px 3px 0 #dccaa2,-4px 4px 0 #b59c6d,-10px 18px 30px rgba(0,0,0,.5);
   opacity:1;transform:none;transition:opacity .5s ease .25s,transform .6s cubic-bezier(.22,1,.36,1) .2s}
 .book.single.peekOff .peek{opacity:0;transform:translateX(10px);transition-delay:0s,0s}
 /* rounded outer corners everywhere under the cover: the pages, the page-edge stack (base) and the back board, so nothing square peeks out at the cover's rounded corners */
@@ -1827,6 +1826,7 @@ function stacks(){
   }else{
     const bs=book.querySelector('.base-s');if(!bs)return;
     bs.style.boxShadow=cur===0?'none':pile(Math.max(0,N-cur),N,1);
+    const pk=book.querySelector('.peek');if(pk)pk.style.boxShadow=bs.style.boxShadow;   /* same page edges under the left page, so the bottom runs straight across the spine */
   }
 }
 function syncClasses(){
@@ -2249,7 +2249,7 @@ async function intro(){
 /* site wrapper: update-on-start + offline copy. The book calls window.ybOnStart(button) when the reader taps Start;
    it resolves true only when it is reloading into a newer edition. */
 (function(){
-var B="20261115-1403-caf7b91", pre=null, preT=0;
+var B="20261116-1725-3fd1c15", pre=null, preT=0;
 try{if(/[?&]v=/.test(location.search))history.replaceState(null,'',location.pathname+location.hash);}catch(e){}
 try{if(sessionStorage.getItem('yb-upd')===B){var s0=document.querySelector('#pwr .pwr-s');if(s0)s0.textContent='Updated to the latest version \u2713';}}catch(e){}
 function check(ms){var ctl=window.AbortController?new AbortController():null,to=setTimeout(function(){ctl&&ctl.abort();},ms||3000);
