@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bidlisiw · PSHS-CVC Batch 2007 Yearbook</title>
-<meta name="yb-build" content="20261116-1817-eff88c0">
+<meta name="yb-build" content="20261116-1821-3f80bb8">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -586,7 +586,8 @@ ol.tac li .playbtn{font-size:.85em}
 /* closed, back side up: a solid block — the board's thickness shows at the lower right, exactly as the front cover's does, so the turn-around matches */
 .book.closedBack .leaf.bkboard .face.back{filter:drop-shadow(6px 6px 0 #3a0a12) drop-shadow(1px 1px 0 #d6c398) drop-shadow(14px 22px 24px rgba(0,0,0,.55))}
 .book.single.closedBack .peek{box-shadow:none!important}
-.book.single.peekOff .base-s+.leaf .face.front{filter:drop-shadow(6px 6px 0 #3a0a12) drop-shadow(1px 1px 0 #d6c398) drop-shadow(14px 22px 24px rgba(0,0,0,.55))}   /* phone view, closed at the front: same block thickness */
+/* phone view, closed: the board's thickness as a plain maroon band on the right and along the bottom — no gilt outline, and the spine-side bottom corner stays square */
+.book.single.peekOff .base-s+.leaf .face.front,.book.single.closedBack .leaf.bkboard .face.back{filter:drop-shadow(6px 0 0 #3a0a12) drop-shadow(0 6px 0 #3a0a12) drop-shadow(10px 20px 22px rgba(0,0,0,.5))}
 /* left edge: the sheets already turned (the endpapers from page 1 on), then the thick board behind them */
 .base-l{box-shadow:-1px 1px 0 #dccaa2,-2px 2px 0 #c4ab7c,-3px 3px 0 #dccaa2,-4px 4px 0 #b59c6d,-5px 5px 0 #d6c398,-11px 11px 0 0 #3a0a12,-12px 12px 0 0 #2a060d,-20px 30px 55px rgba(0,0,0,.65)}
 .book.lastSpread .base-r{box-shadow:6px 6px 0 0 #3a0a12,7px 7px 0 0 #2a060d,20px 30px 55px rgba(0,0,0,.65)}
@@ -2289,7 +2290,7 @@ async function intro(){
 /* site wrapper: update-on-start + offline copy. The book calls window.ybOnStart(button) when the reader taps Start;
    it resolves true only when it is reloading into a newer edition. */
 (function(){
-var B="20261116-1817-eff88c0", pre=null, preT=0;
+var B="20261116-1821-3f80bb8", pre=null, preT=0;
 try{if(/[?&]v=/.test(location.search))history.replaceState(null,'',location.pathname+location.hash);}catch(e){}
 try{if(sessionStorage.getItem('yb-upd')===B){var s0=document.querySelector('#pwr .pwr-s');if(s0)s0.textContent='Updated to the latest version \u2713';}}catch(e){}
 function check(ms){var ctl=window.AbortController?new AbortController():null,to=setTimeout(function(){ctl&&ctl.abort();},ms||3000);
